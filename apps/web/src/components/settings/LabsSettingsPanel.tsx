@@ -38,7 +38,7 @@ function DashboardAutoOpenRow() {
   return (
     <SettingsRow
       {...searchableSetting("dashboard-auto-open")}
-      description="Open the dashboard when every open thread is working or snoozed. Leaves unsent messages and other pages alone. Saved on this device."
+      description="Open from a conversation when every open thread is working or snoozed. Waits while you have an unsent message or another page open. Saved on this device."
       control={
         <Switch
           checked={enabled}

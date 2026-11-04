@@ -74,16 +74,15 @@ links still belong to the official app; Orbit does not take them over.
 
 ## Compatibility and installation verification
 
-| Feature                               | Dependency and required verification                                                                                                                                                                 |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dashboard and Labs auto-open          | Fork's bundled client; check logo, Back, unsent drafts and project filter.                                                                                                                           |
-| Activity, usage, connections          | Existing server shell/provider contracts; verify each connected machine.                                                                                                                             |
-| Pull requests and GitHub              | Existing server's source-control authentication and RPCs. Test lists, selected PR, diff and returning to chat.                                                                                       |
-| Dashboard issue list                  | Fork-only `sourceControl.listIssues` RPC. Older official servers show an unavailable notice and repository link; other dashboard sections remain usable. No host upgrade is performed automatically. |
-| Codex and Claude                      | Run on the chosen environment using its own installed/authenticated runtime. Orbit needs no copied CLI credentials.                                                                                  |
-| Gemini / Antigravity                  | Requires T3's Antigravity ACP runtime and authentication on the execution environment. The Antigravity app or `agy` alone is insufficient. Models come from that environment's current catalog.      |
-| Files, terminals, preview and devices | Depend on the environment's permissions and compatible server capabilities. Verify a harmless operation through each needed surface.                                                                 |
-| Native auth and links                 | Verify fresh Connect sign-in, correct Orbit callback ownership, provider return links and persistence after restart.                                                                                 |
+| Feature                               | Dependency and required verification                                                                                                                                                            |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dashboard and Labs auto-open          | Fork's bundled client; check logo, Back, unsent drafts and selected limits.                                                                                                                     |
+| Activity, usage, connections          | Existing server shell/provider contracts; verify each connected machine.                                                                                                                        |
+| Pull requests and GitHub              | Existing server's source-control authentication and RPCs. Test lists, selected PR, diff and returning to chat.                                                                                  |
+| Codex and Claude                      | Run on the chosen environment using its own installed/authenticated runtime. Orbit needs no copied CLI credentials.                                                                             |
+| Gemini / Antigravity                  | Requires T3's Antigravity ACP runtime and authentication on the execution environment. The Antigravity app or `agy` alone is insufficient. Models come from that environment's current catalog. |
+| Files, terminals, preview and devices | Depend on the environment's permissions and compatible server capabilities. Verify a harmless operation through each needed surface.                                                            |
+| Native auth and links                 | Verify fresh Connect sign-in, correct Orbit callback ownership, provider return links and persistence after restart.                                                                            |
 
 On the target Mac, run the official app and Orbit together. Confirm distinct bundle
 IDs and profile paths, no Orbit-owned local server listener or Connect host, and no

@@ -523,6 +523,15 @@ html[data-mobile-composer-route-transition="true"]::view-transition-old(t3-mobil
     var(--app-scrollbar-width) 100%;
 }
 
+@utility sidebar-aurora-art {
+  --aurora-sky-top: #102d27;
+  --aurora-sky-bottom: #1d463b;
+  --aurora-highlight: #c5f3db;
+  --aurora-light: #7ed7a2;
+  --aurora-edge: #a7e5bd;
+  --aurora-stars: #dbf5e7;
+}
+
 /* Stage-channel art needs a mask and pseudo-element gradient, so keep the
    behavior composable without tying it to the global components layer. */
 @utility sidebar-stage-backdrop {

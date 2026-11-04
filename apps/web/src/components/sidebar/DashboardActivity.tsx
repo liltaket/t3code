@@ -10,7 +10,7 @@ import { Button } from "../ui/button";
 import { dashboardThreads } from "./dashboardState";
 
 const STATUS_COLOR = {
-  Working: "bg-info",
+  Working: "bg-success/70",
   Snoozed: "bg-muted-foreground/50",
   "Needs attention": "bg-warning",
   Disconnected: "bg-destructive",
@@ -37,10 +37,10 @@ export function DashboardActivity({
   return (
     <section aria-labelledby="dashboard-activity-heading" className="min-w-0">
       <div className="mb-4 flex items-baseline justify-between gap-3">
-        <h2 id="dashboard-activity-heading" className="text-base font-semibold">
-          Agent activity
+        <h2 id="dashboard-activity-heading" className="text-sm font-medium">
+          Threads
         </h2>
-        <span className="text-xs text-muted-foreground">{rows.length} open threads</span>
+        <span className="text-xs text-muted-foreground">{rows.length} open</span>
       </div>
       {rows.length === 0 ? (
         <p className="border-y border-border py-8 text-sm text-muted-foreground">
@@ -69,7 +69,7 @@ export function DashboardActivity({
               (provider && providerClients.get(provider.driver)?.label) ??
               thread.runtime?.providerName ??
               String(thread.providerInstanceId);
-            const preview = thread.runtime?.lastError ?? thread.source.latestVisibleMessage?.text;
+            const preview = thread.runtime?.lastError;
             return (
               <li key={`${thread.environmentId}:${thread.id}`}>
                 <Link
@@ -103,11 +103,10 @@ export function DashboardActivity({
                     </div>
                     <p className="mt-1 truncate text-xs text-muted-foreground">
                       {project?.title ?? "Project"} ·{" "}
-                      {environmentLabels.get(thread.environmentId) ?? "Environment"} · {agentLabel}{" "}
-                      · {thread.modelSelection.model}
+                      {environmentLabels.get(thread.environmentId) ?? "Environment"} · {agentLabel}
                     </p>
                     {preview ? (
-                      <p className="mt-2 line-clamp-2 whitespace-pre-line text-sm text-muted-foreground">
+                      <p className="mt-2 line-clamp-1 whitespace-pre-line text-sm text-muted-foreground">
                         {preview.slice(0, 280)}
                       </p>
                     ) : null}

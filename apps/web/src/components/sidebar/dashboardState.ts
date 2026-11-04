@@ -34,6 +34,14 @@ export function allDashboardThreadsBusy(rows: ReturnType<typeof dashboardThreads
   );
 }
 
-export function dashboardShouldOpen(wasEligible: boolean, eligible: boolean, canNavigate: boolean) {
-  return eligible && !wasEligible && canNavigate;
+export function dashboardAutoOpenTransition(
+  shown: boolean,
+  {
+    eligible,
+    canNavigate,
+    isOnDashboard,
+  }: { eligible: boolean; canNavigate: boolean; isOnDashboard: boolean },
+) {
+  const open = eligible && !shown && !isOnDashboard && canNavigate;
+  return { shown: eligible && (shown || isOnDashboard || open), open };
 }

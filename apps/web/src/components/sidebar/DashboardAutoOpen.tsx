@@ -1,5 +1,5 @@
 import { useAtomValue } from "@effect/atom-react";
-import { useNavigate } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { useNowMinute } from "../../hooks/useNowMinute";
 import { useThreadRouteTarget } from "../../hooks/useThreadRouteTarget";
@@ -8,7 +8,11 @@ import { liveShellEnvironmentIdsAtom } from "../../state/shell";
 import { useSnoozeWakeClock } from "../Sidebar.logic";
 import { composerDraftHasUserContent, useComposerDraftStore } from "../../composerDraftStore";
 import { useDashboardAutoOpen } from "./dashboardPreferences";
-import { allDashboardThreadsBusy, dashboardShouldOpen, dashboardThreads } from "./dashboardState";
+import {
+  allDashboardThreadsBusy,
+  dashboardAutoOpenTransition,
+  dashboardThreads,
+} from "./dashboardState";
 
 export function DashboardAutoOpen() {
   const [enabled] = useDashboardAutoOpen();
@@ -28,14 +32,19 @@ export function DashboardAutoOpen() {
   const canNavigate = target !== null && !hasUnsentDraft;
   const eligible =
     enabled && ready && allDashboardThreadsBusy(dashboardThreads(threads, live, now));
-  const wasEligible = useRef(false);
+  const shown = useRef(false);
+  const isOnDashboard = useLocation({ select: (location) => location.pathname === "/dashboard" });
   const navigate = useNavigate();
 
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- navigates the router once when all threads become busy, preserving drafts and utility pages
   useEffect(() => {
-    const open = dashboardShouldOpen(wasEligible.current, eligible, canNavigate);
-    wasEligible.current = eligible;
-    if (open) void navigate({ to: "/dashboard" });
-  }, [eligible, canNavigate, navigate]);
+    const next = dashboardAutoOpenTransition(shown.current, {
+      eligible,
+      canNavigate,
+      isOnDashboard,
+    });
+    shown.current = next.shown;
+    if (next.open) void navigate({ to: "/dashboard" });
+  }, [eligible, canNavigate, isOnDashboard, navigate]);
   return null;
 }

@@ -9,15 +9,17 @@ On mobile, choose **Usage** in the workspace navigation.
 ## Dashboard
 
 On web and desktop, click the logo at the top of the sidebar or choose **Open dashboard**
-from the command palette to open the dashboard in the main workspace. It brings together agent activity, open pull requests,
-GitHub issues, subscription limits, and environment connections. Filter by project,
-select a thread or pull request to open it, or follow an issue to its tracker.
-Issue listings use each environment's source-control sign-in; other source-control
-providers show when issue listings are unavailable. **All usage** opens the full usage view.
+from the command palette. The dashboard shows your open threads and selected subscription limits.
+Use **Choose limits** to pick individual windows, such as Codex weekly or Claude session.
+Your selection is saved on this device. Initially, the dashboard shows one window from
+up to three providers; **Use suggested limits** restores that selection. You can hide every limit.
+Open **All usage** for the complete usage view or **Connections** to manage environments.
 
 Enable **Open dashboard automatically** in **Settings → Labs** to open it from a
 conversation when every open thread is working or snoozed. The preference is off
-by default and saved on this device. Unsent messages and other pages stay where they are.
+by default and saved on this device. If you enable it while threads are already busy,
+it waits until you return to a conversation. Unsent messages and other pages stay where
+they are; opening resumes when the conversation is safe.
 Archived and settled threads do not count. Threads needing attention or belonging
 to a disconnected environment prevent automatic opening. Returning to a thread
 keeps it there until that condition changes and becomes true again.
