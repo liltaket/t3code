@@ -1,5 +1,5 @@
 import { scopedThreadKey } from "@t3tools/client-runtime/environment";
-import { Outlet, createFileRoute, redirect, useMatches } from "@tanstack/react-router";
+import { Outlet, createFileRoute, redirect, useMatches, useLocation } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { ThreadRouteView } from "../components/ThreadRouteView";
@@ -23,6 +23,9 @@ function ChatRouteLayout() {
     select: (matches) => matches.some((match) => isAppModalPage(match.pathname)),
   });
   // Settings and Usage render over the thread that opened them, so ChatView never remounts.
+  const dashboardOpen = useLocation({ select: (location) => location.pathname === "/dashboard" });
+  const [backgroundDashboard, setBackgroundDashboard] = useState(dashboardOpen);
+  if (!modalOpen && backgroundDashboard !== dashboardOpen) setBackgroundDashboard(dashboardOpen);
   const [backgroundTarget, setBackgroundTarget] = useState(threadTarget);
   if (!modalOpen && threadRouteTargetKey(backgroundTarget) !== threadRouteTargetKey(threadTarget)) {
     setBackgroundTarget(threadTarget);
@@ -34,7 +37,11 @@ function ChatRouteLayout() {
         <ThreadLinkPrompt threadRef={shownTarget.threadRef} />
       ) : null}
       {shownTarget ? (
-        <ThreadRouteView target={shownTarget} background={modalOpen} />
+        <ThreadRouteView
+          target={shownTarget}
+          background={modalOpen}
+          dashboard={modalOpen ? backgroundDashboard : dashboardOpen}
+        />
       ) : modalOpen ? (
         <SidebarInset className="h-dvh" />
       ) : (

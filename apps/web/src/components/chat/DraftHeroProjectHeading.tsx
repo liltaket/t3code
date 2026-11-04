@@ -5,9 +5,11 @@ import { observeResize } from "~/lib/observeResize";
 export function DraftHeroProjectHeading({
   children,
   projectName,
+  compact = false,
 }: {
   children: ReactNode;
   projectName: string;
+  compact?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const inlineRef = useRef<HTMLSpanElement>(null);
@@ -29,6 +31,16 @@ export function DraftHeroProjectHeading({
     return observeResize([container, inline], update);
   }, []);
 
+  if (compact) {
+    return (
+      <h2 className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-xl font-normal tracking-tight">
+        <span>What should we build in</span>
+        <span className="flex min-w-0 max-w-full items-baseline">
+          <span className="min-w-0">{children}</span>?
+        </span>
+      </h2>
+    );
+  }
   return (
     <div ref={containerRef} className="group/draft-hero relative w-full" data-inline={fitsInline}>
       <span

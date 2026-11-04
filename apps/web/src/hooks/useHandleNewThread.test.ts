@@ -22,12 +22,23 @@ const testState = vi.hoisted(() => {
   let draftsWithUserText = new Set<string>();
   const router = {
     state: {
-      location: { href: "/" },
+      location: { href: "/", pathname: "/", search: {} as Record<string, unknown> },
       matches: [{ params: {} }],
     },
-    navigate: vi.fn(async (request: { readonly params: { readonly draftId: string } }) => {
-      router.state.location.href = `/draft/${request.params.draftId}`;
-    }),
+    navigate: vi.fn(
+      async (request: {
+        readonly to: string;
+        readonly params?: { readonly draftId: string };
+        readonly search?: { readonly draftId: string };
+      }) => {
+        const draftId = request.params?.draftId ?? request.search?.draftId;
+        router.state.location.href =
+          request.to === "/dashboard" ? `/dashboard?draftId=${draftId}` : `/draft/${draftId}`;
+        router.state.location.pathname =
+          request.to === "/dashboard" ? "/dashboard" : `/draft/${draftId}`;
+        router.state.location.search = request.search ?? {};
+      },
+    ),
   };
   const draftStore = {
     getComposerDraft: vi.fn((draftId: string) => ({ draftId })),
@@ -103,6 +114,8 @@ const testState = vi.hoisted(() => {
         defaultRuntimeMode: "full-access",
       };
       router.state.location.href = "/";
+      router.state.location.pathname = "/";
+      router.state.location.search = {};
       router.navigate.mockClear();
       draftStore.setDraftThreadContext.mockClear();
       draftStore.setLogicalProjectDraftThreadId.mockClear();
@@ -278,24 +291,40 @@ describe.each([
     expect(testState.draftStore.setLogicalProjectDraftThreadId).not.toHaveBeenCalled();
   });
 
-  it("sets the prompt before the draft shows", async () => {
-    testState.reset(draft);
-    const pendingOpen = useNewThreadHandler()(
-      { environmentId: "environment-ssh", projectId: "project-remote" } as never,
-      { prompt: "Read the playbook. " },
-    );
+  it.each([false, true])(
+    "sets the prompt before the draft shows (dashboard: %s)",
+    async (dashboard) => {
+      testState.reset(draft);
+      const pendingOpen = useNewThreadHandler()(
+        { environmentId: "environment-ssh", projectId: "project-remote" } as never,
+        { prompt: "Read the playbook. ", dashboard },
+      );
 
-    testState.completeProjectFileRead(null);
-    const opened = await pendingOpen;
+      testState.completeProjectFileRead(null);
+      const opened = await pendingOpen;
 
-    expect(testState.draftStore.setPrompt).toHaveBeenCalledWith(
-      opened?.draftId,
-      "Read the playbook. ",
-    );
-    expect(testState.draftStore.setPrompt.mock.invocationCallOrder[0]).toBeLessThan(
-      testState.router.navigate.mock.invocationCallOrder[0] ?? 0,
-    );
-  });
+      expect(testState.router.navigate).toHaveBeenCalledWith(
+        dashboard
+          ? {
+              to: "/dashboard",
+              search: { draftId: opened?.draftId },
+              replace: false,
+            }
+          : {
+              to: "/draft/$draftId",
+              params: { draftId: opened?.draftId },
+              replace: false,
+            },
+      );
+      expect(testState.draftStore.setPrompt).toHaveBeenCalledWith(
+        opened?.draftId,
+        "Read the playbook. ",
+      );
+      expect(testState.draftStore.setPrompt.mock.invocationCallOrder[0]).toBeLessThan(
+        testState.router.navigate.mock.invocationCallOrder[0] ?? 0,
+      );
+    },
+  );
 
   it("abandons a delayed draft open when the project is removed meanwhile", async () => {
     testState.reset(draft);

@@ -7,6 +7,8 @@ import { Navigate, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import ChatView from "./ChatView";
+import { workspaceAreaProps } from "../lib/workspaceFocus";
+import { useDashboardDraftId } from "./sidebar/dashboardPreferences";
 import { BackgroundThreadContext } from "./chat/backgroundThread";
 import { SidebarInset } from "./ui/sidebar";
 import { useComposerDraftStore } from "../composerDraftStore";
@@ -34,12 +36,20 @@ import {
 export function ThreadRouteView({
   target,
   background = false,
+  dashboard = false,
 }: {
   target: ThreadRouteTarget;
   background?: boolean;
+  dashboard?: boolean;
 }) {
   const navigate = useNavigate();
+  const [savedDashboardDraftId, setDashboardDraftId] = useDashboardDraftId();
   const draftId = target.kind === "draft" ? target.draftId : null;
+  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- remembers the dashboard's local draft so returning preserves unsent input
+  useEffect(() => {
+    if (dashboard && !background && draftId !== null && savedDashboardDraftId !== draftId)
+      setDashboardDraftId(draftId);
+  }, [dashboard, background, draftId, savedDashboardDraftId, setDashboardDraftId]);
   const draftSession = useComposerDraftStore((store) =>
     draftId === null ? null : store.getDraftSession(draftId),
   );
@@ -153,6 +163,7 @@ export function ThreadRouteView({
           threadId={draftSession.threadId}
           routeKind="draft"
           forceExpandedMobileComposer
+          dashboard={dashboard}
         />
       );
     } else if (draftRedirect && hiddenKeys.has(threadKey(draftRedirect))) {
@@ -205,6 +216,7 @@ export function ThreadRouteView({
 
   return (
     <SidebarInset
+      {...(dashboard ? workspaceAreaProps("dashboard", 1, "Dashboard") : {})}
       className="h-svh min-h-0 overflow-hidden overscroll-y-none md:h-dvh"
       inert={background}
     >

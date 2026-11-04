@@ -9,7 +9,15 @@ On mobile, choose **Usage** in the workspace navigation.
 ## Dashboard
 
 On web and desktop, click the logo at the top of the sidebar or choose **Open dashboard**
-from the command palette. The dashboard shows your open threads and selected subscription limits.
+from the command palette. The dashboard shows token usage, a daily calendar, compact thread
+counts and selected subscription limits. Burn rate and output tokens per second are averages
+of reported usage over the last 60 minutes, including idle time; they are not model decoding
+speed. Reports update every five minutes while the dashboard is open. Use the environment
+filter to scope usage, counts and limits; it does not change the destination of a prompt.
+
+Write a new prompt with the usual project, model and permission controls below the statistics.
+Unsent input stays in its draft when you leave and return. Sending opens the conversation.
+
 Use **Choose limits** to pick individual windows, such as Codex weekly or Claude session.
 Your selection is saved on this device. Initially, the dashboard shows one window from
 up to three providers; **Use suggested limits** restores that selection. You can hide every limit.

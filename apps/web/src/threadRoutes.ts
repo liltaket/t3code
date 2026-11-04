@@ -89,6 +89,7 @@ export function resolveThreadRouteRef(
 
 export function resolveThreadRouteTarget(
   params: Partial<Record<"environmentId" | "threadId" | "draftId", string | undefined>>,
+  location?: { readonly pathname?: string; readonly search?: Record<string, unknown> },
 ): ThreadRouteTarget | null {
   if (params.environmentId && params.threadId) {
     return {
@@ -97,14 +98,12 @@ export function resolveThreadRouteTarget(
     };
   }
 
-  if (!params.draftId) {
-    return null;
-  }
-
-  return {
-    kind: "draft",
-    draftId: params.draftId as DraftId,
-  };
+  const draftId =
+    params.draftId ??
+    (location?.pathname === "/dashboard" && typeof location.search?.draftId === "string"
+      ? location.search.draftId
+      : null);
+  return draftId ? { kind: "draft", draftId: draftId as DraftId } : null;
 }
 
 export function resolveActiveThreadRouteRef(

@@ -15,6 +15,27 @@ import {
 } from "./threadRoutes";
 
 describe("threadRoutes", () => {
+  it.each([
+    {
+      pathname: "/dashboard",
+      search: { draftId: "draft-orbit" },
+      expected: { kind: "draft", draftId: "draft-orbit" },
+    },
+    { pathname: "/dashboard", search: { draftId: "" }, expected: null },
+    { pathname: "/dashboard", search: { draftId: 42 }, expected: null },
+    { pathname: "/usage", search: { draftId: "draft-orbit" }, expected: null },
+  ])(
+    "resolves dashboard draft only from its own valid location: $pathname $search",
+    ({ pathname, search, expected }) => {
+      expect(resolveThreadRouteTarget({}, { pathname, search })).toEqual(expected);
+      expect(
+        resolveThreadRouteTarget(
+          { environmentId: "env-1", threadId: "thread-1" },
+          { pathname, search },
+        ),
+      ).toEqual({ kind: "server", threadRef: { environmentId: "env-1", threadId: "thread-1" } });
+    },
+  );
   it("matches only the thread's own route pathname", () => {
     const ref = scopeThreadRef("env-1" as never, ThreadId.make("thread-1"));
 
