@@ -92,6 +92,20 @@ const decodeLinkSubject = Schema.decodeUnknownEffect(
   ),
 );
 
+const decodeIssueRows = Schema.decodeUnknownEffect(
+  Schema.fromJsonString(
+    Schema.Array(
+      Schema.Struct({
+        number: Schema.Int.check(Schema.isGreaterThan(0)),
+        title: Schema.String,
+        html_url: Schema.String,
+        updated_at: Schema.String,
+        pull_request: Schema.optionalKey(Schema.Unknown),
+      }),
+    ),
+  ),
+);
+
 function toChangeRequest(record: NormalizedGitHubPullRequestRecord): ChangeRequest {
   return { provider: SourceControlProviderKind.make("github"), ...record };
 }
@@ -860,6 +874,49 @@ export const make = Effect.gen(function* () {
 
   return SourceControlProvider.SourceControlProvider.of({
     kind: SourceControlProviderKind.make("github"),
+    listIssues: Effect.fn("GitHubSourceControlProvider.listIssues")(
+      function* ({ cwd, context, limit }) {
+        const remote = context === undefined ? null : normalizeGitRemoteUrl(context.remoteUrl);
+        const locator =
+          remote === null
+            ? yield* resolveRepository({ cwd })
+            : parseGitHubRepositorySelector(
+                `${contextHost(context)}/${remote.slice(remote.indexOf("/") + 1)}`,
+                "github.com",
+              );
+        if (locator === null)
+          return yield* failure("The project's GitHub repository could not be resolved.");
+        const repository = `${locator.owner}/${locator.name}`;
+        const answer = yield* rest(
+          {
+            host: locator.host,
+            operation: "listIssues",
+            path: `/repos/${encodeURIComponent(locator.owner)}/${encodeURIComponent(locator.name)}/issues?state=open&sort=updated&direction=desc&per_page=100`,
+          },
+          REPOSITORY_NOT_FOUND,
+        );
+        if (answer.truncated || answer.invalidUtf8)
+          return yield* failure("GitHub returned an incomplete issue list.");
+        const rows = yield* decodeIssueRows(answer.body).pipe(
+          Effect.mapError((cause) => failure("GitHub returned an invalid issue list.", cause)),
+        );
+        // GitHub's repository issues endpoint includes pull requests in the same page.
+        const issues = rows.filter((row) => !Object.hasOwn(row, "pull_request"));
+        const take = Math.min(50, Math.max(1, Math.trunc(limit)));
+        return {
+          repository,
+          url: `https://${locator.host}/${repository}/issues`,
+          entries: issues.slice(0, take).map((row) => ({
+            number: row.number,
+            title: row.title,
+            url: row.html_url,
+            updatedAt: row.updated_at,
+          })),
+          hasMore: issues.length > take || /rel="next"/u.test(answer.headers.link ?? ""),
+        };
+      },
+      (effect, input) => effect.pipe(Effect.mapError(providerError("listIssues", input.cwd))),
+    ),
     resolveRemoteWebHost: Effect.fn("GitHubSourceControlProvider.resolveRemoteWebHost")(
       ({ context }) => Effect.succeed(gitHubApiHostForRemote(context.remoteUrl)),
     ),

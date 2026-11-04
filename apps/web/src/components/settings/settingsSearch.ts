@@ -460,6 +460,12 @@ export const SETTINGS_SEARCH_ITEMS = [
     searchTerms: ["beta folders project tree legacy old classic sidebar"],
   },
   {
+    id: "dashboard-auto-open",
+    title: "Open dashboard automatically",
+    to: "/settings/labs",
+    searchTerms: ["overview agents working snoozed busy automatic home"],
+  },
+  {
     id: "boring-sidebar-multiline",
     title: "Two-line folder rows",
     to: "/settings/labs",

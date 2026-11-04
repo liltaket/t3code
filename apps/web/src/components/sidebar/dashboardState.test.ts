@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
 import { EnvironmentId, ProviderInstanceId, ThreadId } from "@t3tools/contracts";
 import { makeThreadFixture } from "../../test-fixtures";
-import { dashboardAutoState, dashboardThreads, allDashboardThreadsBusy } from "./dashboardState";
+import { dashboardShouldOpen, dashboardThreads, allDashboardThreadsBusy } from "./dashboardState";
 
 const now = "2026-11-04T12:00:00.000Z";
 const environmentId = EnvironmentId.make("environment-test");
@@ -61,15 +61,12 @@ describe("dashboard thread status", () => {
 });
 
 describe("dashboard automatic opening", () => {
-  it("respects dismissal until eligibility changes, then rearms", () => {
-    expect(dashboardAutoState({ eligible: true, open: true }, false)).toEqual({
-      eligible: false,
-      open: true,
-    });
-    const dismissed = { eligible: true, open: false };
-    expect(dashboardAutoState(dismissed, true)).toBe(dismissed);
-    const idle = dashboardAutoState(dismissed, false);
-    expect(idle).toEqual({ eligible: false, open: false });
-    expect(dashboardAutoState(idle, true)).toEqual({ eligible: true, open: true });
+  it("opens only on a new busy transition and leaves other views alone", () => {
+    expect(dashboardShouldOpen(false, true, true)).toBe(true);
+    expect(dashboardShouldOpen(true, true, true)).toBe(false);
+    expect(dashboardShouldOpen(true, false, true)).toBe(false);
+    expect(dashboardShouldOpen(false, false, true)).toBe(false);
+    expect(dashboardShouldOpen(false, true, false)).toBe(false);
+    expect(dashboardShouldOpen(true, true, false)).toBe(false);
   });
 });

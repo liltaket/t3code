@@ -24,7 +24,7 @@ export function dashboardThreads(
           : isThreadWorking(thread)
             ? "Working"
             : "Needs attention";
-      return { thread, status };
+      return { thread, status } as const;
     });
 }
 
@@ -34,9 +34,6 @@ export function allDashboardThreadsBusy(rows: ReturnType<typeof dashboardThreads
   );
 }
 
-export function dashboardAutoState(
-  previous: { eligible: boolean; open: boolean },
-  eligible: boolean,
-) {
-  return previous.eligible === eligible ? previous : { eligible, open: previous.open || eligible };
+export function dashboardShouldOpen(wasEligible: boolean, eligible: boolean, canNavigate: boolean) {
+  return eligible && !wasEligible && canNavigate;
 }

@@ -10,6 +10,7 @@ import type {
   SourceControlProviderKind,
   SourceControlRepositoryCloneUrls,
   SourceControlRepositoryVisibility,
+  SourceControlIssueListResult,
 } from "@t3tools/contracts";
 
 export interface SourceControlLinkSubject {
@@ -149,6 +150,11 @@ export class SourceControlProvider extends Context.Service<
       }) => Effect.Effect<SourceControlProviderContext | null, SourceControlProviderError>;
     }) => Effect.Effect<string | null, SourceControlProviderError>;
     readonly resolveLink?: ResolveSourceControlLink;
+    readonly listIssues?: (input: {
+      readonly cwd: string;
+      readonly context?: SourceControlProviderContext;
+      readonly limit: number;
+    }) => Effect.Effect<Omit<SourceControlIssueListResult, "status">, SourceControlProviderError>;
     /**
      * Whether `createChangeRequest` from `cwd` targets `repository`, the `owner/name` of the
      * context's remote, for a host whose tools let configuration outside the remotes name another

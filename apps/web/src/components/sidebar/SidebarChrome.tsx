@@ -38,7 +38,6 @@ import { SidebarThreadUndoNotice } from "./SidebarThreadUndoNotice";
 import { SidebarProviderUpdatePill } from "./SidebarProviderUpdatePill";
 import { SidebarUpdateArchitectureWarning, SidebarUpdatePill } from "./SidebarUpdatePill";
 import { PullRequestGlyph } from "~/components/pullRequest/pullRequestIcons";
-import { openDashboard } from "./dashboardVisibility";
 import { observeResize } from "~/lib/observeResize";
 
 export const SidebarChromeHeader = memo(function SidebarChromeHeader({
@@ -164,12 +163,16 @@ function HistoryNavigationButton({
 }
 
 function SidebarBrand({ onBackdrop }: { onBackdrop: boolean }) {
+  const navigate = useNavigate();
+  const { setOpenMobile } = useSidebar();
   return (
     <button
       type="button"
       aria-label="T3 Code dashboard"
-      aria-haspopup="dialog"
-      onClick={openDashboard}
+      onClick={() => {
+        setOpenMobile(false);
+        void navigate({ to: "/dashboard" });
+      }}
       className={cn(
         "relative z-10 ml-[var(--workspace-titlebar-content-left)] flex h-7 w-fit min-w-0 shrink-0 items-center overflow-hidden rounded-md outline-hidden ring-ring focus-visible:ring-2 focus-visible:ring-inset [-webkit-app-region:no-drag]",
         onBackdrop ? "text-white" : "text-foreground",

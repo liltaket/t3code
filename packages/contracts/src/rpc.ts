@@ -394,6 +394,8 @@ import {
   SourceControlRepositoryError,
   SourceControlRepositoryInfo,
   SourceControlRepositoryLookupInput,
+  SourceControlIssueListInput,
+  SourceControlIssueListResult,
   SourceControlAppAccess,
   SourceControlAppAccessInput,
   SourceControlStarredInput,
@@ -588,6 +590,7 @@ export const WS_METHODS = {
   pullRequestsSetLabels: "pullRequests.setLabels",
 
   sourceControlLookupRepository: "sourceControl.lookupRepository",
+  sourceControlListIssues: "sourceControl.listIssues",
   sourceControlCloneRepository: "sourceControl.cloneRepository",
   sourceControlPublishRepository: "sourceControl.publishRepository",
   sourceControlSignInStart: "sourceControl.signInStart",
@@ -1210,6 +1213,12 @@ const WsPullRequestsSetLabelsRpc = Rpc.make(WS_METHODS.pullRequestsSetLabels, {
 const WsSourceControlLookupRepositoryRpc = Rpc.make(WS_METHODS.sourceControlLookupRepository, {
   payload: SourceControlRepositoryLookupInput,
   success: SourceControlRepositoryInfo,
+  error: Schema.Union([SourceControlRepositoryError, EnvironmentAuthorizationError]),
+});
+
+const WsSourceControlListIssuesRpc = Rpc.make(WS_METHODS.sourceControlListIssues, {
+  payload: SourceControlIssueListInput,
+  success: SourceControlIssueListResult,
   error: Schema.Union([SourceControlRepositoryError, EnvironmentAuthorizationError]),
 });
 
@@ -2091,6 +2100,7 @@ export const WsRpcGroup = RpcGroup.make(
   WsPullRequestsLabelCandidatesRpc,
   WsPullRequestsSetLabelsRpc,
   WsSourceControlLookupRepositoryRpc,
+  WsSourceControlListIssuesRpc,
   WsSourceControlCloneRepositoryRpc,
   WsSourceControlPublishRepositoryRpc,
   WsSourceControlSignInStartRpc,

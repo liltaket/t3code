@@ -37,7 +37,7 @@ import {
   usePanelAnimationSettings,
   usePanelNavigationSuppression,
 } from "../panelAnimations";
-import { ThreadDashboard } from "./sidebar/ThreadDashboard";
+import { DashboardAutoOpen } from "./sidebar/DashboardAutoOpen";
 import { BackgroundThreadAnnouncer } from "./BackgroundThreadAnnouncer";
 import { HistorySwipeNavigation } from "./HistorySwipeNavigation";
 import ThreadSidebar from "./Sidebar";
@@ -475,7 +475,7 @@ export function AppSidebarLayout({ children }: { children: ReactNode }) {
         </Sidebar>
         {children}
         <BackgroundThreadAnnouncer />
-        <ThreadDashboard />
+        <DashboardAutoOpen />
         <SidebarControl />
         {isElectron ? <HistorySwipeNavigation /> : null}
       </SidebarProvider>

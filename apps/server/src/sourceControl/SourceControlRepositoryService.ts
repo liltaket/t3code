@@ -20,6 +20,8 @@ import {
   type SourceControlRepositoryCloneUrls,
   type SourceControlRepositoryInfo,
   type SourceControlRepositoryLookupInput,
+  type SourceControlIssueListInput,
+  type SourceControlIssueListResult,
 } from "@t3tools/contracts";
 
 import * as ServerConfig from "../config.ts";
@@ -33,6 +35,9 @@ import * as GitVcsDriver from "../vcs/GitVcsDriver.ts";
 import * as SourceControlProvider from "@t3tools/source-control-core/server/SourceControlProvider";
 import * as SourceControlProviderRegistry from "./SourceControlProviderRegistry.ts";
 import * as HostProcess from "@t3tools/shared/HostProcess";
+import * as ProjectService from "../project/ProjectService.ts";
+import * as Option from "effect/Option";
+import { sourceControlDefinitions } from "./sourceControlDefinitions.ts";
 import { cloneUrlForProtocol, cloneUrlProtocol } from "@t3tools/shared/cloneUrl";
 const isSourceControlRepositoryError = Schema.is(SourceControlRepositoryError);
 const isSourceControlProviderError = Schema.is(SourceControlProviderError);
@@ -44,6 +49,9 @@ export class SourceControlRepositoryService extends Context.Service<
     readonly lookupRepository: (
       input: SourceControlRepositoryLookupInput,
     ) => Effect.Effect<SourceControlRepositoryInfo, SourceControlRepositoryError>;
+    readonly listIssues: (
+      input: SourceControlIssueListInput,
+    ) => Effect.Effect<SourceControlIssueListResult, SourceControlRepositoryError>;
     readonly prepareClone: (
       input: SourceControlCloneRepositoryInput,
     ) => Effect.Effect<SourceControlPreparedClone, SourceControlRepositoryError>;
@@ -201,6 +209,69 @@ export const make = Effect.gen(function* () {
   const git = yield* GitVcsDriver.GitVcsDriver;
   const path = yield* Path.Path;
   const providers = yield* SourceControlProviderRegistry.SourceControlProviderRegistry;
+  const projects = yield* ProjectService.ProjectService;
+
+  const listIssues = Effect.fn("SourceControlRepositoryService.listIssues")(function* (
+    input: SourceControlIssueListInput,
+  ) {
+    const project = yield* projects.getShell(input.projectId).pipe(
+      Effect.mapError(
+        (cause) =>
+          new SourceControlRepositoryError({
+            operation: "listIssues",
+            provider: SourceControlProviderKind.make("unknown"),
+            detail: "The project could not be read.",
+            cause,
+          }),
+      ),
+    );
+    if (Option.isNone(project))
+      return yield* new SourceControlRepositoryError({
+        operation: "listIssues",
+        provider: SourceControlProviderKind.make("unknown"),
+        detail: "The project is no longer available.",
+      });
+    const { workspaceRoot: cwd, repositoryIdentity: identity } = project.value;
+    const recognized =
+      identity === undefined || identity === null
+        ? undefined
+        : sourceControlDefinitions.recognizeRemote(identity.locator.remoteUrl);
+    const handle = yield* providers
+      .resolveHandle({
+        cwd,
+        ...(recognized && identity
+          ? {
+              context: {
+                provider: recognized,
+                remoteName: identity.locator.remoteName,
+                remoteUrl: identity.locator.remoteUrl,
+              },
+            }
+          : {}),
+      })
+      .pipe(
+        mapRepositoryError(
+          "listIssues",
+          identity?.provider ?? SourceControlProviderKind.make("unknown"),
+        ),
+      );
+    if (handle.provider.listIssues === undefined)
+      return {
+        status: "unsupported" as const,
+        repository: identity?.displayName ?? null,
+        url: null,
+        entries: [],
+        hasMore: false,
+      };
+    const listed = yield* handle.provider
+      .listIssues({
+        cwd,
+        ...(handle.context === null ? {} : { context: handle.context }),
+        limit: input.limit ?? 12,
+      })
+      .pipe(mapRepositoryError("listIssues", handle.provider.kind));
+    return { status: "ready" as const, ...listed };
+  });
 
   const ensureConcreteProvider = (input: {
     readonly operation: string;
@@ -553,6 +624,7 @@ export const make = Effect.gen(function* () {
 
   // Forwarders retain the underlying operation spans.
   return SourceControlRepositoryService.of({
+    listIssues,
     lookupRepository: Effect.fnUntraced(function* (input) {
       return yield* lookupRepository(input).pipe(
         mapRepositoryError("lookupRepository", input.provider),

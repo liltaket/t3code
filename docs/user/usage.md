@@ -8,15 +8,19 @@ On mobile, choose **Usage** in the workspace navigation.
 
 ## Dashboard
 
-On web and desktop, click **T3 Code** at the top of the sidebar to see open threads
-and subscription limits. Select a thread to return to it, or choose **View all usage**
-for the full usage view.
+On web and desktop, click the logo at the top of the sidebar or choose **Open dashboard**
+from the command palette to open the dashboard in the main workspace. It brings together agent activity, open pull requests,
+GitHub issues, subscription limits, and environment connections. Filter by project,
+select a thread or pull request to open it, or follow an issue to its tracker.
+Issue listings use each environment's source-control sign-in; other source-control
+providers show when issue listings are unavailable. **All usage** opens the full usage view.
 
-Enable **Open automatically** in the dashboard to open it when every open thread is
-working or snoozed. The preference is off by default and saved on this device.
+Enable **Open dashboard automatically** in **Settings → Labs** to open it from a
+conversation when every open thread is working or snoozed. The preference is off
+by default and saved on this device. Unsent messages and other pages stay where they are.
 Archived and settled threads do not count. Threads needing attention or belonging
-to a disconnected environment prevent automatic opening. Closing the dashboard
-keeps it closed until that condition changes and becomes true again.
+to a disconnected environment prevent automatic opening. Returning to a thread
+keeps it there until that condition changes and becomes true again.
 
 ## Understand your usage
 

@@ -13,12 +13,14 @@ import { LegacyFeaturesSection } from "./SettingsPanels";
 import { useScopedSettings, useUpdateScopedSettings } from "./useScopedSettings";
 import { useOptionalSettingsScope } from "./SettingsScopeContext";
 import { firstManagedDenial, usePrimaryManagedPolicy } from "~/state/managedPolicy";
+import { useDashboardAutoOpen } from "../sidebar/dashboardPreferences";
 
 /** Features still settling in, and legacy behavior kept for people who rely on it. */
 export function LabsSettingsPanel() {
   return (
     <SettingsPageContainer>
       <SettingsSection id="beta" title="Beta">
+        <DashboardAutoOpenRow />
         <BoringSidebarRow />
         <BoringSidebarMultilineRow />
         {/* Clerk is only mounted when this build has T3 Connect. */}
@@ -28,6 +30,23 @@ export function LabsSettingsPanel() {
       </SettingsSection>
       <LegacyFeaturesSection />
     </SettingsPageContainer>
+  );
+}
+
+function DashboardAutoOpenRow() {
+  const [enabled, setEnabled] = useDashboardAutoOpen();
+  return (
+    <SettingsRow
+      {...searchableSetting("dashboard-auto-open")}
+      description="Open the dashboard when every open thread is working or snoozed. Leaves unsent messages and other pages alone. Saved on this device."
+      control={
+        <Switch
+          checked={enabled}
+          onCheckedChange={setEnabled}
+          aria-label="Open dashboard automatically"
+        />
+      }
+    />
   );
 }
 

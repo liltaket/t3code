@@ -262,6 +262,65 @@ const githubContext = (host: string) => ({
 });
 
 describe("GitHubSourceControlProvider repository resolution", () => {
+  it.effect(
+    "lists open issues without counting pull requests and retains the bounded remainder",
+    () => {
+      const issue = (number: number) => ({
+        number,
+        title: `Issue ${number}`,
+        html_url: `https://github.com/acme/web/issues/${number}`,
+        updated_at: "2026-11-04T08:00:00Z",
+      });
+      const { layer } = harness({
+        remotes: remotesOutput(["origin", "git@github.com:acme/web.git"]),
+        api: {
+          rest: (input) => {
+            assert.strictEqual(
+              input.path,
+              "/repos/acme/web/issues?state=open&sort=updated&direction=desc&per_page=100",
+            );
+            return Effect.succeed(
+              restResponse([
+                {
+                  ...issue(1),
+                  pull_request: { url: "https://api.github.com/repos/acme/web/pulls/1" },
+                },
+                issue(2),
+                issue(3),
+                issue(4),
+              ]),
+            );
+          },
+        },
+      });
+      return Effect.gen(function* () {
+        const provider = yield* GitHubSourceControlProvider.make;
+        const result = yield* provider.listIssues!({ cwd: "/repo", limit: 2 });
+        assert.deepStrictEqual(result, {
+          repository: "acme/web",
+          url: "https://github.com/acme/web/issues",
+          entries: [2, 3].map((number) => ({
+            number,
+            title: `Issue ${number}`,
+            url: `https://github.com/acme/web/issues/${number}`,
+            updatedAt: "2026-11-04T08:00:00Z",
+          })),
+          hasMore: true,
+        });
+        const complete = yield* provider.listIssues!({
+          cwd: "/repo",
+          context: githubContext("github.com"),
+          limit: 50,
+        });
+        assert.deepStrictEqual(
+          complete.entries.map((entry) => entry.number),
+          [2, 3, 4],
+        );
+        assert.strictEqual(complete.hasMore, false);
+      }).pipe(Effect.provide(layer));
+    },
+  );
+
   it.effect("reads the repository gh would pick from the remotes", () => {
     const paths: string[] = [];
     const { layer } = harness({

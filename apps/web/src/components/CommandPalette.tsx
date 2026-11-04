@@ -1574,6 +1574,17 @@ function OpenCommandPaletteDialog(props: {
 
   actionItems.push({
     kind: "action",
+    value: "action:dashboard",
+    searchTerms: ["dashboard", "overview", "agents", "activity", "issues", "home"],
+    title: "Open dashboard",
+    icon: <ChartNoAxesColumnIcon className={ITEM_ICON_CLASS} />,
+    run: async () => {
+      await navigate({ to: "/dashboard" });
+    },
+  });
+
+  actionItems.push({
+    kind: "action",
     value: "action:usage",
     searchTerms: ["usage", "use", "tokens", "cost", "spend", "limits", "stats", "analytics"],
     title: "Open usage",

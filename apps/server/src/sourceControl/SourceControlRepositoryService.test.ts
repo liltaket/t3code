@@ -1,4 +1,8 @@
-import { SourceControlProviderKind } from "@t3tools/contracts";
+import {
+  ProjectId,
+  SourceControlProviderKind,
+  type OrchestrationProjectShell,
+} from "@t3tools/contracts";
 import * as NodePath from "@effect/platform-node/NodePath";
 import * as NodeCrypto from "@effect/platform-node/NodeCrypto";
 import * as NodeServices from "@effect/platform-node/NodeServices";
@@ -7,6 +11,7 @@ import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Path from "effect/Path";
 import * as Layer from "effect/Layer";
+import * as Option from "effect/Option";
 import * as PlatformError from "effect/PlatformError";
 import { ChildProcessSpawner } from "effect/process";
 
@@ -21,6 +26,17 @@ import * as GitVcsDriver from "../vcs/GitVcsDriver.ts";
 import type * as SourceControlProvider from "@t3tools/source-control-core/server/SourceControlProvider";
 import * as SourceControlProviderRegistry from "./SourceControlProviderRegistry.ts";
 import * as SourceControlRepositoryService from "./SourceControlRepositoryService.ts";
+import * as ProjectService from "../project/ProjectService.ts";
+
+const PROJECT: OrchestrationProjectShell = {
+  id: ProjectId.make("project-test"),
+  title: "Repository",
+  workspaceRoot: "/repo",
+  defaultModelSelection: null,
+  scripts: [],
+  createdAt: "2026-11-04T08:00:00Z",
+  updatedAt: "2026-11-04T08:00:00Z",
+};
 
 const CLONE_URLS = {
   nameWithOwner: "octocat/t3code",
@@ -64,12 +80,23 @@ function layer(input: {
   readonly provider?: SourceControlProvider.SourceControlProvider["Service"];
   readonly git?: Partial<GitVcsDriver.GitVcsDriver["Service"]>;
   readonly fileSystem?: FileSystem.FileSystem;
+  readonly project?: OrchestrationProjectShell | null;
 }) {
   const layerService = SourceControlRepositoryService.layer.pipe(
     Layer.provide(
       Layer.mock(SourceControlProviderRegistry.SourceControlProviderRegistry)({
         resolveLink: () => undefined,
         get: () => Effect.succeed(input.provider ?? makeProvider()),
+        resolveHandle: () =>
+          Effect.succeed({ provider: input.provider ?? makeProvider(), context: null }),
+      }),
+    ),
+    Layer.provide(
+      Layer.mock(ProjectService.ProjectService)({
+        getShell: () =>
+          Effect.succeed(
+            Option.fromNullishOr(input.project === undefined ? PROJECT : input.project),
+          ),
       }),
     ),
     Layer.provide(
@@ -126,6 +153,44 @@ const lookupFailingWith = (cause: unknown, detail: string) =>
       }),
     ),
   );
+
+it.effect(
+  "requires an existing project for issues and distinguishes unsupported repositories",
+  () =>
+    Effect.gen(function* () {
+      const missing = yield* Effect.gen(function* () {
+        const service = yield* SourceControlRepositoryService.SourceControlRepositoryService;
+        return yield* service.listIssues({ projectId: PROJECT.id }).pipe(Effect.flip);
+      }).pipe(Effect.provide(layer({ project: null })));
+      assert.strictEqual(missing.detail, "The project is no longer available.");
+      const unsupported = yield* Effect.gen(function* () {
+        const service = yield* SourceControlRepositoryService.SourceControlRepositoryService;
+        return yield* service.listIssues({ projectId: PROJECT.id });
+      }).pipe(Effect.provide(layer({})));
+      assert.deepStrictEqual(unsupported, {
+        status: "unsupported",
+        repository: null,
+        url: null,
+        entries: [],
+        hasMore: false,
+      });
+      const ready = {
+        repository: "acme/web",
+        url: "https://github.com/acme/web/issues",
+        entries: [],
+        hasMore: false,
+      };
+      const supported = yield* Effect.gen(function* () {
+        const service = yield* SourceControlRepositoryService.SourceControlRepositoryService;
+        return yield* service.listIssues({ projectId: PROJECT.id, limit: 12 });
+      }).pipe(
+        Effect.provide(
+          layer({ provider: makeProvider({ listIssues: () => Effect.succeed(ready) }) }),
+        ),
+      );
+      assert.deepStrictEqual(supported, { status: "ready", ...ready });
+    }),
+);
 
 it.effect("tells the user a host's fixed explanation of a failed repository lookup", () =>
   Effect.gen(function* () {

@@ -1,5 +1,5 @@
 import * as Schema from "effect/Schema";
-import { PositiveInt, TrimmedNonEmptyString } from "./baseSchemas.ts";
+import { PositiveInt, ProjectId, TrimmedNonEmptyString } from "./baseSchemas.ts";
 import { VcsDriverKind } from "./vcs.ts";
 
 /** Accept unknown hosts so clients can fall back to generic presentation. */
@@ -15,6 +15,28 @@ export const SourceControlProviderInfo = Schema.Struct({
   baseUrl: Schema.String,
 });
 export type SourceControlProviderInfo = typeof SourceControlProviderInfo.Type;
+
+export const SourceControlIssueListInput = Schema.Struct({
+  projectId: ProjectId,
+  limit: Schema.optional(PositiveInt.check(Schema.isLessThanOrEqualTo(50))),
+});
+export type SourceControlIssueListInput = typeof SourceControlIssueListInput.Type;
+
+export const SourceControlIssueListResult = Schema.Struct({
+  status: Schema.Literals(["ready", "unsupported"]),
+  repository: Schema.NullOr(Schema.String),
+  url: Schema.NullOr(Schema.String),
+  entries: Schema.Array(
+    Schema.Struct({
+      number: PositiveInt,
+      title: Schema.String,
+      url: Schema.String,
+      updatedAt: Schema.String,
+    }),
+  ),
+  hasMore: Schema.Boolean,
+});
+export type SourceControlIssueListResult = typeof SourceControlIssueListResult.Type;
 
 export const ChangeRequestState = Schema.Literals(["open", "closed", "merged"]);
 export type ChangeRequestState = typeof ChangeRequestState.Type;
