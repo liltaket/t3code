@@ -6,6 +6,18 @@ desktop when the terminal is not focused. Customize `usage.open` in
 
 On mobile, choose **Usage** in the workspace navigation.
 
+## Dashboard
+
+On web and desktop, click **T3 Code** at the top of the sidebar to see open threads
+and subscription limits. Select a thread to return to it, or choose **View all usage**
+for the full usage view.
+
+Enable **Open automatically** in the dashboard to open it when every open thread is
+working or snoozed. The preference is off by default and saved on this device.
+Archived and settled threads do not count. Threads needing attention or belonging
+to a disconnected environment prevent automatic opening. Closing the dashboard
+keeps it closed until that condition changes and becomes true again.
+
 ## Understand your usage
 
 **Usage** combines Codex, Claude Code, Grok Build, OpenCode, Antigravity, Pi, Muse Code, and Cursor history
