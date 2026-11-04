@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { APP_BASE_NAME } from "../../branding";
 
 import { isLocalEnvironmentDisabled } from "../../localEnvironment";
 import {
@@ -24,6 +25,14 @@ export function LocalEnvironmentSetting() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   if (!setEnabled) return null;
+  if (APP_BASE_NAME === "T3 Orbit") {
+    return (
+      <SettingsRow
+        {...searchableSetting("local-environment")}
+        description="Orbit connects to your existing environments. It does not run a local T3 server."
+      />
+    );
+  }
 
   const applyChange = async () => {
     setIsUpdating(true);

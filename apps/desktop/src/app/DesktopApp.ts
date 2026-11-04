@@ -1,3 +1,4 @@
+import { desktopVariant } from "./DesktopVariant.ts";
 import * as Cause from "effect/Cause";
 import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
@@ -187,7 +188,7 @@ const bootstrap = Effect.gen(function* () {
 
   yield* snapShot.initialize;
 
-  if (!settings.localEnvironmentEnabled) {
+  if (desktopVariant.clientOnly || !settings.localEnvironmentEnabled) {
     yield* logBootstrapInfo("bootstrap skipping local environment (disabled in settings)");
     if (!(yield* Ref.get(state.quitting))) {
       yield* desktopWindow.createMainIfBackendReady;

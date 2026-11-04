@@ -1,3 +1,4 @@
+import { desktopVariant } from "./DesktopVariant.ts";
 import * as Option from "effect/Option";
 
 export type JoinPath = (first: string, ...segments: string[]) => string;
@@ -15,8 +16,9 @@ export function resolveDesktopBaseDir(input: {
   readonly joinPath: JoinPath;
   readonly t3Home: Option.Option<string>;
 }): string {
+  if (desktopVariant.clientOnly) return input.joinPath(input.homeDirectory, desktopVariant.home);
   return Option.getOrElse(normalizeConfiguredBaseDir(input.t3Home), () =>
-    input.joinPath(input.homeDirectory, ".t3"),
+    input.joinPath(input.homeDirectory, desktopVariant.home),
   );
 }
 
@@ -26,6 +28,9 @@ export function resolveDesktopStateDir(input: {
   readonly joinPath: JoinPath;
   readonly t3Home: Option.Option<string>;
 }): string {
+  if (desktopVariant.clientOnly) {
+    return input.joinPath(input.baseDir, input.isDevelopment ? "dev" : "userdata");
+  }
   const useDevSubdir =
     input.isDevelopment && Option.isNone(normalizeConfiguredBaseDir(input.t3Home));
   return input.joinPath(input.baseDir, useDevSubdir ? "dev" : "userdata");

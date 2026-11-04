@@ -14,6 +14,7 @@ import { Button } from "../ui/button";
 function ProjectIssues({ project }: { project: Project }) {
   const environment = useEnvironment(project.environmentId);
   const connected = environment?.connection.phase === "connected";
+  const repositoryUrl = project.repositoryIdentity?.webUrl;
   const query = useEnvironmentQuery(
     connected
       ? dashboardIssues({
@@ -49,6 +50,16 @@ function ProjectIssues({ project }: { project: Project }) {
       ) : query.error ? (
         <p role="status" className="text-xs text-warning">
           Could not load issues. Check source control or update this environment.
+          {repositoryUrl ? (
+            <a
+              href={repositoryUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 block underline underline-offset-4"
+            >
+              Open repository
+            </a>
+          ) : null}
         </p>
       ) : query.data === null ? (
         <p role="status" className="text-xs text-muted-foreground">

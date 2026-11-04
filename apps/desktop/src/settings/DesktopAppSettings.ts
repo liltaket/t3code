@@ -1,3 +1,4 @@
+import { desktopVariant } from "../app/DesktopVariant.ts";
 import {
   DesktopServerExposureModeSchema,
   DesktopUpdateChannelSchema,
@@ -64,7 +65,7 @@ export const DEFAULT_MAIN_WINDOW_SIZE = {
 } as const;
 
 export const DEFAULT_DESKTOP_SETTINGS: DesktopSettings = {
-  localEnvironmentEnabled: true,
+  localEnvironmentEnabled: !desktopVariant.clientOnly,
   linuxPasswordStore: DEFAULT_LINUX_PASSWORD_STORE,
   mainWindowBounds: null,
   mainWindowMaximized: false,
@@ -215,7 +216,7 @@ function normalizeDesktopSettingsDocument(
     (parsed.wslBackendEnabled === undefined && parsed.wslMode === "wsl");
 
   return {
-    localEnvironmentEnabled: parsed.localEnvironmentEnabled !== false,
+    localEnvironmentEnabled: !desktopVariant.clientOnly && parsed.localEnvironmentEnabled !== false,
     linuxPasswordStore: normalizeLinuxPasswordStorePreference(parsed.linuxPasswordStore),
     mainWindowBounds,
     mainWindowMaximized: mainWindowBounds !== null && parsed.mainWindowMaximized === true,
@@ -367,6 +368,7 @@ function setWslOnly(settings: DesktopSettings, enabled: boolean): DesktopSetting
 }
 
 function setLocalEnvironmentEnabled(settings: DesktopSettings, enabled: boolean): DesktopSettings {
+  if (desktopVariant.clientOnly) enabled = false;
   return settings.localEnvironmentEnabled === enabled
     ? settings
     : { ...settings, localEnvironmentEnabled: enabled };

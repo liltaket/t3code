@@ -4,13 +4,17 @@ import { defaultInclude, defineConfig } from "vite-plus";
 import { isDesktopRuntimeExternalDependency } from "../../scripts/lib/desktop-external-packages.ts";
 import { loadRepoEnv } from "../../scripts/lib/public-config.ts";
 
+import { resolveDesktopVariant } from "../../scripts/lib/desktop-variant.ts";
+
 const repoEnv = loadRepoEnv();
+resolveDesktopVariant(repoEnv.T3CODE_DESKTOP_VARIANT);
 
 // Install only bundle externals; the server bundle already carries its dependency tree.
 const isMainProcessExternal = (id: string) =>
   id === "electron" || id.startsWith("electron/") || isDesktopRuntimeExternalDependency(id);
 const shouldLaunchElectronAfterPack = process.env.T3CODE_DESKTOP_DEV === "1";
 const publicConfigDefine = {
+  __T3CODE_BUILD_VARIANT__: JSON.stringify(repoEnv.T3CODE_DESKTOP_VARIANT ?? "t3code"),
   __T3CODE_BUILD_CLERK_PUBLISHABLE_KEY__: JSON.stringify(
     repoEnv.T3CODE_CLERK_PUBLISHABLE_KEY?.trim() ?? "",
   ),

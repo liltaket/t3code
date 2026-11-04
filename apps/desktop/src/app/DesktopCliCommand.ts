@@ -1,3 +1,4 @@
+import { desktopVariant } from "./DesktopVariant.ts";
 // @effect-diagnostics-next-line nodeBuiltinImport:off -- FileSystem.access has no execute check.
 import * as NodeFSP from "node:fs/promises";
 
@@ -63,6 +64,18 @@ export class DesktopCliCommand extends Context.Service<
 
 /** @public */
 export const make = Effect.gen(function* () {
+  if (desktopVariant.clientOnly) {
+    const state = { supported: false, installedPath: null, onPath: false, launcherPath: null };
+    return DesktopCliCommand.of({
+      state: Effect.succeed(state),
+      install: Effect.fail(
+        new DesktopCliCommandError({
+          message: "Orbit is a client. Use the existing T3 server's CLI.",
+        }),
+      ),
+      uninstall: Effect.succeed(state),
+    });
+  }
   const environment = yield* DesktopEnvironment.DesktopEnvironment;
   const fs = yield* FileSystem.FileSystem;
   const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;

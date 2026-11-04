@@ -41,6 +41,7 @@ import {
   selectCliRuntimeExternalDependencies,
 } from "./lib/cli-external-packages.ts";
 import { loadRepoEnv } from "./lib/public-config.ts";
+import { resolveDesktopVariant } from "./lib/desktop-variant.ts";
 import { selectDesktopRuntimeExternalDependencies } from "./lib/desktop-external-packages.ts";
 import { resolveCatalogDependencies } from "./lib/resolve-catalog.ts";
 
@@ -62,7 +63,6 @@ import { Command, Flag } from "effect/cli";
 import { ChildProcess, ChildProcessSpawner } from "effect/process";
 
 const LINUX_ICON_SIZES = [16, 22, 24, 32, 48, 64, 128, 256, 512] as const;
-const DESKTOP_APP_ID = "com.t3tools.t3code";
 const APPLE_TEAM_ID_PATTERN = /^[A-Z0-9]{10}$/u;
 
 const BuildPlatform = Schema.Literals(["mac", "linux", "win"]);
@@ -1280,7 +1280,7 @@ export function resolveMacPasskeySigningConfiguration(
   }
 
   return {
-    appId: DESKTOP_APP_ID,
+    appId: resolveDesktopVariant(env.T3CODE_DESKTOP_VARIANT).appId,
     teamId,
     rpDomains: uniqueRpDomains,
     provisioningProfilePath,
@@ -1678,6 +1678,15 @@ export const resolveMockUpdateServerPort = Effect.fn("resolveMockUpdateServerPor
   return yield* decodeMockUpdateServerPort(port);
 });
 
+export class OrbitRebuildRequiredError extends Schema.TaggedError<OrbitRebuildRequiredError>()(
+  "OrbitRebuildRequiredError",
+  {},
+) {
+  override get message() {
+    return "Orbit must rebuild its bundles with its own identity. Remove --skip-build and T3CODE_DESKTOP_SKIP_BUILD.";
+  }
+}
+
 export const resolveBuildOptions = Effect.fn("resolveBuildOptions")(function* (
   input: BuildCliInput,
 ) {
@@ -1717,6 +1726,10 @@ export const resolveBuildOptions = Effect.fn("resolveBuildOptions")(function* (
   );
 
   const skipBuild = resolveBooleanFlag(input.skipBuild, env.skipBuild);
+  const variant = resolveDesktopVariant(
+    yield* Config.String("T3CODE_DESKTOP_VARIANT").pipe(Config.withDefault("t3code")),
+  );
+  if (variant.clientOnly && skipBuild) return yield* new OrbitRebuildRequiredError();
   const keepStage = resolveBooleanFlag(input.keepStage, env.keepStage);
   const signed = resolveBooleanFlag(input.signed, env.signed);
   const verbose = resolveBooleanFlag(input.verbose, env.verbose);
@@ -2748,7 +2761,11 @@ export function resolvePackageManagerUserAgent(packageManager: string): string {
   return `${trimmed.slice(0, versionSeparator)}/${trimmed.slice(versionSeparator + 1)}`;
 }
 
-export function resolveDesktopProductName(version: string): string {
+export function resolveDesktopProductName(
+  version: string,
+  variant = resolveDesktopVariant(),
+): string {
+  if (variant.clientOnly) return "T3 Orbit";
   return resolveDesktopUpdateChannel(version) === "nightly"
     ? "T3 Code (Nightly)"
     : (desktopPackageJson.productName ?? "T3 Code");
@@ -2770,11 +2787,14 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
   wslRuntimeBundled = false,
   arch?: typeof BuildArch.Type,
 ) {
+  const variant = resolveDesktopVariant(
+    yield* Config.String("T3CODE_DESKTOP_VARIANT").pipe(Config.withDefault("t3code")),
+  );
   const buildConfig: Record<string, unknown> = {
     afterPack: (yield* Path.Path).join(yield* RepoRoot, "scripts/prepare-server-compile-cache.cjs"),
-    appId: DESKTOP_APP_ID,
-    productName: resolveDesktopProductName(version),
-    artifactName: "T3-Code-${version}-${arch}.${ext}",
+    appId: variant.appId,
+    productName: resolveDesktopProductName(version, variant),
+    artifactName: `${variant.clientOnly ? "T3-Orbit" : "T3-Code"}-\${version}-\${arch}.\${ext}`,
     electronLanguages: [...DESKTOP_ELECTRON_LANGUAGES],
     files: [
       ...DESKTOP_FILE_EXCLUSIONS,
@@ -2802,7 +2822,7 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
   const updateChannel = resolveDesktopUpdateChannel(version);
   // Missing publish config infers a GitHub feed from tokens; staging has no repository, so manifest generation would crash.
   buildConfig.publish = null;
-  if (!isDesktopPreviewVersion(version)) {
+  if (!variant.clientOnly && !isDesktopPreviewVersion(version)) {
     const publishConfig = yield* resolveGitHubPublishConfig(updateChannel);
     if (publishConfig) {
       buildConfig.publish = [publishConfig];
@@ -2847,14 +2867,18 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
       },
       protocols: [
         {
-          name: "T3 Code",
-          schemes: ["t3code", "t3code-dev"],
+          name: variant.baseName,
+          schemes: [variant.scheme, variant.devScheme],
         },
-        {
-          name: "Web site URL",
-          schemes: ["http", "https"],
-          role: "Viewer",
-        },
+        ...(variant.clientOnly
+          ? []
+          : [
+              {
+                name: "Web site URL",
+                schemes: ["http", "https"],
+                role: "Viewer",
+              },
+            ]),
       ],
       ...(signed ? { sign: path.join(repoRoot, "scripts/sign-macos.ts") } : {}),
       ...(macPasskeySigning
@@ -2869,7 +2893,7 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
   if (platform === "mac" && target === "dmg") {
     buildConfig.dmg = {
       // Finder caches DMG backgrounds by volume name; give each installer its own.
-      title: `${resolveDesktopProductName(version)} ${version} Installer`,
+      title: `${resolveDesktopProductName(version, variant)} ${version} Installer`,
       background: `dmg/dmg-background-${updateChannel}.png`,
       window: {
         width: 640,
@@ -2900,8 +2924,8 @@ export const createBuildConfig = Effect.fn("createBuildConfig")(function* (
       maintainer: "T3 Tools <hello@t3.codes>",
       protocols: [
         {
-          name: "T3 Code",
-          schemes: ["t3code", "t3code-dev"],
+          name: variant.baseName,
+          schemes: [variant.scheme, variant.devScheme],
         },
       ],
       desktop: {
@@ -3853,8 +3877,11 @@ const buildDesktopArtifactUnlocked = Effect.fn("buildDesktopArtifactUnlocked")(f
     options.platform === "win"
       ? path.join(stageAppDir, WINDOWS_SERVER_RESOURCE_SOURCE_DIR, WINDOWS_SERVER_ASAR_RESOURCE)
       : undefined;
+  const stagedVariant = resolveDesktopVariant(
+    yield* Config.String("T3CODE_DESKTOP_VARIANT").pipe(Config.withDefault("t3code")),
+  );
   const stagePackageJson: StagePackageJson = {
-    name: "t3code",
+    name: stagedVariant.clientOnly ? "t3-orbit" : "t3code",
     version: appVersion,
     buildVersion: appVersion,
     t3codeCommitHash: commitHash,

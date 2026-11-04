@@ -1,3 +1,4 @@
+import { desktopVariant } from "./DesktopVariant.ts";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
@@ -120,6 +121,7 @@ export const launcherPath = (environment: DesktopEnvironment.DesktopEnvironment[
   );
 
 export const install = Effect.gen(function* () {
+  if (desktopVariant.clientOnly) return Option.none<string>();
   const environment = yield* DesktopEnvironment.DesktopEnvironment;
   if (!environment.isPackaged) return Option.none<string>();
   const fs = yield* FileSystem.FileSystem;

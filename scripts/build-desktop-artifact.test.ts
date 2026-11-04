@@ -42,6 +42,7 @@ import {
   resolveMacPasskeySigningConfiguration,
   resolveMergedStageDependencies,
   resolveBuildOptions,
+  OrbitRebuildRequiredError,
   stageWslRuntimeArchive,
   ancestorNodeModulesPaths,
   copyDirectoryPreservingSymlinks,
@@ -527,6 +528,30 @@ it.layer(NodeServices.layer)("build-desktop-artifact", (it) => {
         undefined,
       );
 
+      const orbit = yield* createBuildConfig(
+        "mac",
+        "dmg",
+        "0.1.7",
+        false,
+        false,
+        undefined,
+        undefined,
+      ).pipe(
+        Effect.provide(
+          ConfigProvider.layer(
+            ConfigProvider.fromEnv({
+              env: { T3CODE_DESKTOP_VARIANT: "orbit", GITHUB_REPOSITORY: "pingdotgg/t3code" },
+            }),
+          ),
+        ),
+      );
+      assert.equal(orbit.appId, "com.liltaket.t3orbit");
+      assert.equal(orbit.productName, "T3 Orbit");
+      assert.equal(orbit.artifactName, "T3-Orbit-${version}-${arch}.${ext}");
+      assert.isNull(orbit.publish);
+      assert.deepEqual((orbit.mac as { protocols: unknown }).protocols, [
+        { name: "T3 Orbit", schemes: ["t3code-orbit", "t3code-orbit-dev"] },
+      ]);
       assert.isNull(preview.publish);
       assert.isNull(previewChannel.publish);
       assert.deepStrictEqual(release.publish, [
@@ -1688,6 +1713,32 @@ it.layer(NodeServices.layer)("build-desktop-artifact", (it) => {
         ),
       );
 
+      for (const skipFlag of [Option.some(true), Option.none<boolean>()]) {
+        const refused = yield* resolveBuildOptions({
+          platform: Option.some("mac"),
+          target: Option.none(),
+          arch: Option.some("arm64"),
+          buildVersion: Option.none(),
+          outputDir: Option.none(),
+          skipBuild: skipFlag,
+          keepStage: Option.none(),
+          signed: Option.none(),
+          verbose: Option.none(),
+          mockUpdates: Option.none(),
+          mockUpdateServerPort: Option.none(),
+          wslRuntime: Option.none(),
+        }).pipe(
+          Effect.provide(
+            ConfigProvider.layer(
+              ConfigProvider.fromEnv({
+                env: { T3CODE_DESKTOP_VARIANT: "orbit", T3CODE_DESKTOP_SKIP_BUILD: "true" },
+              }),
+            ),
+          ),
+          Effect.flip,
+        );
+        assert.instanceOf(refused, OrbitRebuildRequiredError);
+      }
       assert.equal(resolved.skipBuild, false);
       assert.equal(resolved.keepStage, false);
       assert.equal(resolved.signed, false);

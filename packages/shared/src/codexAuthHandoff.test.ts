@@ -47,6 +47,9 @@ describe("Codex desktop handoff", () => {
   it("rejects other handlers, schemes, arbitrary return sites, and non-OpenAI authorization", () => {
     const link = codexAuthHandoffUrl(input);
     expect(readCodexAuthHandoff(link, true)).toBeUndefined();
+    const orbitLink = link.replace("t3code:", "t3code-orbit:");
+    expect(readCodexAuthHandoff(orbitLink, false)).toBeUndefined();
+    expect(readCodexAuthHandoff(orbitLink, false, "t3code-orbit")).toEqual(input);
     expect(readCodexAuthHandoff(link.replace("auth/codex", "auth/other"), false)).toBeUndefined();
     expect(
       readCodexAuthHandoff(

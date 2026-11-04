@@ -92,12 +92,16 @@ export function codexAuthHandoffUrl(input: CodexAuthHandoff, development = false
   return url.toString();
 }
 
-export function readCodexAuthHandoff(value: string, development: boolean) {
+export function readCodexAuthHandoff(
+  value: string,
+  development: boolean,
+  scheme = development ? "t3code-dev" : "t3code",
+) {
   try {
     const url = new URL(value);
     if (
       value.length > 32_768 ||
-      url.protocol !== (development ? "t3code-dev:" : "t3code:") ||
+      url.protocol !== `${scheme}:` ||
       url.host !== "auth" ||
       url.pathname !== "/codex" ||
       url.username ||
