@@ -68,11 +68,48 @@ export function StageBackdropButtonArt({ variant }: { variant: SidebarStageBackd
   return variant === "nightly" ? <NightlySkyArt compact /> : <DevBlueprintArt compact />;
 }
 
+const NIGHTLY_STARS: ReadonlyArray<{
+  cx: number;
+  cy: number;
+  r: number;
+  opacity: number;
+}> = [
+  { cx: 14, cy: 10, r: 0.6, opacity: 0.85 },
+  { cx: 38, cy: 22, r: 0.4, opacity: 0.55 },
+  { cx: 58, cy: 8, r: 0.5, opacity: 0.7 },
+  { cx: 84, cy: 16, r: 0.4, opacity: 0.5 },
+  { cx: 104, cy: 7, r: 0.6, opacity: 0.8 },
+  { cx: 126, cy: 20, r: 0.4, opacity: 0.55 },
+  { cx: 148, cy: 11, r: 0.5, opacity: 0.7 },
+  { cx: 170, cy: 24, r: 0.4, opacity: 0.5 },
+  { cx: 192, cy: 9, r: 0.6, opacity: 0.8 },
+  { cx: 214, cy: 18, r: 0.4, opacity: 0.55 },
+  { cx: 236, cy: 8, r: 0.5, opacity: 0.7 },
+  { cx: 258, cy: 20, r: 0.45, opacity: 0.6 },
+  { cx: 278, cy: 11, r: 0.55, opacity: 0.75 },
+  { cx: 26, cy: 34, r: 0.4, opacity: 0.45 },
+  { cx: 118, cy: 34, r: 0.4, opacity: 0.45 },
+  { cx: 202, cy: 32, r: 0.4, opacity: 0.5 },
+  { cx: 268, cy: 34, r: 0.4, opacity: 0.45 },
+];
+
+const NIGHTLY_SPARKLES: ReadonlyArray<{ x: number; y: number }> = [
+  { x: 70, y: 28 },
+  { x: 160, y: 36 },
+  { x: 246, y: 26 },
+];
+
 function NightlySkyArt({ compact = false }: { compact?: boolean }) {
   const id = useId().replaceAll(":", "");
   const sky = `${id}-aurora-sky`;
+  const glow = `${id}-aurora-glow`;
   const light = `${id}-aurora-light`;
-  const curtain = `${id}-aurora-curtain`;
+  const fade = `${id}-aurora-fade`;
+  const veil = `${id}-aurora-veil`;
+  const soft = `${id}-aurora-soft`;
+  const haze = `${id}-aurora-haze`;
+  const stars = `${id}-aurora-stars`;
+  const aurora = `${id}-aurora`;
   return (
     <svg
       data-stage-art="aurora"
@@ -83,39 +120,118 @@ function NightlySkyArt({ compact = false }: { compact?: boolean }) {
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
-        <linearGradient id={sky} x1="0" y1="0" x2="0" y2="96" gradientUnits="userSpaceOnUse">
-          <stop stopColor="var(--aurora-sky-top)" />
-          <stop offset="1" stopColor="var(--aurora-sky-bottom)" />
+        <linearGradient
+          id={sky}
+          x1="24"
+          y1="0"
+          x2="264"
+          y2="96"
+          gradientUnits="userSpaceOnUse"
+          spreadMethod="reflect"
+        >
+          <stop stopColor="var(--aurora-sky-bottom)" />
+          <stop offset="0.5" stopColor="var(--aurora-sky-mid)" />
+          <stop offset="1" stopColor="var(--aurora-sky-top)" />
         </linearGradient>
-        <linearGradient id={light} x1="0" y1="4" x2="0" y2="78" gradientUnits="userSpaceOnUse">
-          <stop stopColor="var(--aurora-highlight)" stopOpacity="0" />
-          <stop offset="0.5" stopColor="var(--aurora-light)" stopOpacity="0.55" />
+        <radialGradient
+          id={glow}
+          cx="0"
+          cy="0"
+          r="1"
+          gradientTransform="translate(222 24) rotate(154) scale(124 66)"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="var(--aurora-light)" stopOpacity="0.24" />
+          <stop offset="0.55" stopColor="var(--aurora-light)" stopOpacity="0.09" />
+          <stop offset="1" stopColor="var(--aurora-light)" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id={light} x1="0" y1="-24" x2="0" y2="52" gradientUnits="userSpaceOnUse">
+          <stop stopColor="var(--aurora-light)" stopOpacity="0" />
+          <stop offset="0.4" stopColor="var(--aurora-light)" stopOpacity="0.12" />
+          <stop offset="0.78" stopColor="var(--aurora-highlight)" stopOpacity="0.64" />
           <stop offset="1" stopColor="var(--aurora-light)" stopOpacity="0" />
         </linearGradient>
-        <pattern id={curtain} width="512" height="96" patternUnits="userSpaceOnUse">
-          <path
-            d="M-40 53C32 53 54 4 116 12S198 70 258 35S344 3 394 29S466 69 550 17V80C466 98 434 58 390 55S302 35 257 68S162 48 115 40S26 81-40 82Z"
-            fill={`url(#${light})`}
-          />
-          <path
-            d="M-20 59C45 52 65 15 119 21S200 67 258 43S341 14 397 36S468 71 532 30"
-            stroke="var(--aurora-edge)"
-            strokeOpacity="0.25"
-            strokeWidth="1"
-          />
-          <g fill="var(--aurora-stars)" fillOpacity="0.55">
-            <circle cx="25" cy="12" r="0.5" />
-            <circle cx="78" cy="31" r="0.4" />
-            <circle cx="154" cy="9" r="0.6" />
-            <circle cx="217" cy="22" r="0.4" />
-            <circle cx="284" cy="10" r="0.5" />
-            <circle cx="365" cy="13" r="0.4" />
-            <circle cx="443" cy="7" r="0.5" />
+        <linearGradient id={fade} x1="76" y1="0" x2="356" y2="0" gradientUnits="userSpaceOnUse">
+          <stop stopColor="var(--color-white)" stopOpacity="0" />
+          <stop offset="0.24" stopColor="var(--color-white)" />
+          <stop offset="0.74" stopColor="var(--color-white)" />
+          <stop offset="1" stopColor="var(--color-white)" stopOpacity="0" />
+        </linearGradient>
+        <clipPath id={veil}>
+          <path d="M76-24H364V7C326 4 305 32 278 38C245 45 225 12 197 16C170 18 164 47 137 43C111 40 98 22 76 27V-24Z" />
+        </clipPath>
+        <filter id={soft} x="64" y="-32" width="312" height="112" filterUnits="userSpaceOnUse">
+          <feGaussianBlur stdDeviation="2" />
+        </filter>
+        <filter id={haze} x="32" y="-48" width="376" height="144" filterUnits="userSpaceOnUse">
+          <feGaussianBlur stdDeviation="7" />
+        </filter>
+        <pattern id={stars} width="288" height="96" patternUnits="userSpaceOnUse">
+          <g fill="var(--aurora-stars)">
+            {NIGHTLY_STARS.map((star) => (
+              <circle
+                key={`${star.cx}-${star.cy}`}
+                cx={star.cx}
+                cy={star.cy}
+                r={star.r}
+                fillOpacity={star.opacity}
+              />
+            ))}
+          </g>
+          <g
+            stroke="var(--aurora-stars)"
+            strokeLinecap="round"
+            strokeOpacity="0.7"
+            strokeWidth="0.6"
+          >
+            {NIGHTLY_SPARKLES.map((star) => (
+              <g key={`${star.x}-${star.y}`}>
+                <path d={`M${star.x - 1.5} ${star.y}H${star.x + 1.5}`} />
+                <path d={`M${star.x} ${star.y - 1.5}V${star.y + 1.5}`} />
+              </g>
+            ))}
           </g>
         </pattern>
+        <pattern id={aurora} width="640" height="96" patternUnits="userSpaceOnUse">
+          <rect width="384" height="96" fill={`url(#${glow})`} />
+          <g filter={`url(#${haze})`}>
+            <path
+              d="M100-18C136 7 140 45 168 37C197 29 207 11 231 27C265 50 282 36 312 14L349-12"
+              stroke="var(--aurora-light)"
+              strokeOpacity="0.27"
+              strokeWidth="14"
+            />
+          </g>
+          <g filter={`url(#${soft})`}>
+            <g clipPath={`url(#${veil})`}>
+              <rect x="76" y="-24" width="288" height="80" fill={`url(#${light})`} opacity="0.36" />
+              <g stroke={`url(#${light})`} strokeLinecap="round">
+                <path
+                  d="M96-20L116 48M113-16L128 48M136-24L146 47M151-18L157 44M166-21L171 36M186-24L188 28M205-22L205 24M218-18L215 27M231-24L226 36M250-22L241 43M267-24L256 49M283-20L272 46M303-24L289 38M327-18L310 30M347-22L329 21"
+                  strokeWidth="3"
+                  strokeOpacity="0.62"
+                />
+                <path
+                  d="M105-12L120 46M125-24L138 48M145-19L152 47M176-16L178 31M195-20L197 26M223-22L220 30M240-18L234 40M260-24L249 48M277-17L263 47M294-24L280 43M315-16L298 33M339-24L319 28"
+                  strokeWidth="1"
+                  strokeOpacity="0.58"
+                />
+                <path
+                  d="M129-24L145 52M200-24L202 26M254-24L242 49M314-24L296 40"
+                  strokeWidth="7"
+                  strokeOpacity="0.18"
+                />
+              </g>
+            </g>
+          </g>
+        </pattern>
+        <mask id={`${fade}-mask`} maskUnits="userSpaceOnUse" x="0" y="0" width="8192" height="96">
+          <rect width="8192" height="96" fill={`url(#${fade})`} />
+        </mask>
       </defs>
       <rect width="100%" height="96" fill={`url(#${sky})`} />
-      <rect width="100%" height="96" fill={`url(#${curtain})`} />
+      <rect width="100%" height="96" fill={`url(#${aurora})`} mask={`url(#${fade}-mask)`} />
+      <rect width="100%" height="96" fill={`url(#${stars})`} />
     </svg>
   );
 }
