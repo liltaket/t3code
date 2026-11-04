@@ -22,22 +22,22 @@ export function DashboardLimits({ pools }: { pools: ReadonlyArray<LimitPool> }) 
       window,
     })),
   );
-  const suggested = pools.slice(0, 3).flatMap((pool) => {
+  const suggested = pools.slice(0, 2).flatMap((pool) => {
     const first = displayLimitWindows(pool)[0];
     return first ? [`${pool.driver}:${first.id}`] : [];
   });
-  const selectedKeys = selection ?? suggested;
+  const availableKeys = new Set(available.map((item) => item.key));
+  const selectedKeys = (selection ?? suggested).filter((key) => availableKeys.has(key)).slice(0, 3);
   const visible = available.filter((item) => selectedKeys.includes(item.key));
   return (
-    <section aria-labelledby="dashboard-usage-heading" className="min-w-0">
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <h2 id="dashboard-usage-heading" className="text-sm font-medium">
-          Your limits
-        </h2>
+    <section aria-label="Usage limits" className="orbit-dashboard-limits">
+      <div className="orbit-dashboard-limits-picker">
         <Menu>
-          <MenuTrigger render={<Button variant="ghost-muted" size="sm" />}>
+          <MenuTrigger
+            aria-label="Choose limits"
+            render={<Button variant="ghost-muted" size="icon-sm" />}
+          >
             <SlidersHorizontalIcon />
-            Choose limits
           </MenuTrigger>
           <MenuPopup align="end">
             {available.length === 0 ? (
@@ -48,11 +48,14 @@ export function DashboardLimits({ pools }: { pools: ReadonlyArray<LimitPool> }) 
                   key={item.key}
                   checked={selectedKeys.includes(item.key)}
                   closeOnClick={false}
+                  disabled={!selectedKeys.includes(item.key) && selectedKeys.length >= 3}
                   onCheckedChange={(checked) => {
                     setSelection((previous) => {
-                      const current = previous ?? suggested;
+                      const current = (previous ?? suggested)
+                        .filter((key) => availableKeys.has(key))
+                        .slice(0, 3);
                       return checked
-                        ? [...new Set([...current, item.key])]
+                        ? [...new Set([...current, item.key])].slice(0, 3)
                         : current.filter((key) => key !== item.key);
                     });
                   }}
@@ -67,13 +70,11 @@ export function DashboardLimits({ pools }: { pools: ReadonlyArray<LimitPool> }) 
         </Menu>
       </div>
       {visible.length === 0 ? (
-        <p className="py-3 text-sm text-muted-foreground">
-          {available.length === 0
-            ? "Limits will appear when a connected account reports them."
-            : "No limits selected. Choose the ones you want to keep here."}
+        <p className="pt-1 text-xs text-muted-foreground">
+          {available.length === 0 ? "Limits unavailable" : "No limits selected"}
         </p>
       ) : (
-        <ul className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+        <ul className="grid gap-4">
           {visible.map((item) => (
             <li key={item.key}>
               <div className="mb-2 flex items-baseline justify-between gap-3 text-xs">
@@ -87,7 +88,7 @@ export function DashboardLimits({ pools }: { pools: ReadonlyArray<LimitPool> }) 
                 aria-valuemax={100}
                 aria-valuenow={item.window.remainingPercent}
                 aria-valuetext={`${item.window.remainingPercent}% remaining across ${item.accounts} ${item.accounts === 1 ? "account" : "accounts"}`}
-                className="h-1 overflow-hidden rounded-full bg-muted"
+                className="h-px overflow-hidden rounded-full bg-muted"
               >
                 <div
                   className={

@@ -29,6 +29,7 @@ import { type TerminalLaunchContext, useChatTerminalActions } from "./chat/useCh
 import { useComposerSend } from "./chat/useComposerSend";
 import { useComposerResume } from "./chat/useComposerResume";
 import { useImplementPlanInNewThread } from "./chat/useProposedPlanSend";
+import { DashboardAurora } from "./sidebar/DashboardAurora";
 import { DashboardHeader, DashboardOverview } from "./sidebar/ThreadDashboard";
 import { ThreadFind, ThreadFindCanvas } from "./chat/ThreadFindProvider";
 import { closeThreadFind, openThreadFind, useThreadFindOpen } from "./chat/threadFindStore";
@@ -3286,6 +3287,7 @@ export default function ChatView(props: ChatViewProps) {
       ref={setWorkspaceLayoutElement}
       className="relative flex min-h-0 min-w-0 flex-1 overflow-hidden bg-background"
     >
+      {isDashboardDraft ? <DashboardAurora /> : null}
       {embedded ? null : (
         <DeviceSetupDialogHost
           threadKey={activeThreadKey}
@@ -3297,10 +3299,12 @@ export default function ChatView(props: ChatViewProps) {
       <div
         className={cn(
           "flex min-h-0 min-w-0 flex-col overflow-x-hidden",
+          isDashboardDraft && "relative z-10",
           rightPanelMaximized ? "w-0 flex-none" : "flex-1",
         )}
         data-chat-column-maximized-away={rightPanelMaximized ? "true" : "false"}
         data-chat-column
+        data-orbit-dashboard-column={isDashboardDraft || undefined}
         inert={rightPanelMaximized}
       >
         {embedded ? null : isDashboardDraft ? (
@@ -3351,6 +3355,7 @@ export default function ChatView(props: ChatViewProps) {
 
         <div className="relative flex min-h-0 min-w-0 flex-1">
           <ThreadFindCanvas
+            data-orbit-dashboard-canvas={isDashboardDraft || undefined}
             findOptions={{
               skills: timelineSkills,
               progressive: serverConfig?.threadFindProgressive === true,
@@ -3389,8 +3394,12 @@ export default function ChatView(props: ChatViewProps) {
               setThreadErrorBannerDismissTick={setThreadErrorBannerDismissTick}
             />
             <div
-              {...conversationArea}
-              className="relative flex min-h-0 flex-1 flex-col bg-background"
+              {...(isDashboardDraft ? {} : conversationArea)}
+              className={
+                isDashboardDraft
+                  ? "contents"
+                  : "relative flex min-h-0 flex-1 flex-col bg-background"
+              }
             >
               {isDashboardDraft ? (
                 <DashboardOverview />
@@ -3519,13 +3528,16 @@ export default function ChatView(props: ChatViewProps) {
               data-chat-composer-overlay="true"
               className={
                 isDashboardDraft
-                  ? "pointer-events-none relative z-20 shrink-0 bg-background pt-4"
+                  ? "orbit-dashboard-composer pointer-events-none relative z-20"
                   : isDraftHeroState
                     ? "pointer-events-none absolute inset-0 z-20 flex items-center"
                     : "pointer-events-none absolute inset-x-0 bottom-0 z-20 pt-1.5 sm:pt-2"
               }
             >
-              <div ref={draftHeroTransitionGroupRef} className="chat-composer-lane w-full">
+              <div
+                ref={draftHeroTransitionGroupRef}
+                className={isDashboardDraft ? "w-full" : "chat-composer-lane w-full"}
+              >
                 <div
                   data-chat-composer-stack="true"
                   className="group/composer-stack pointer-events-auto relative z-10 mx-auto w-full max-w-(--chat-content-max-width)"
@@ -3543,7 +3555,6 @@ export default function ChatView(props: ChatViewProps) {
                         }
                       >
                         <DraftHeroHeadline
-                          compact={isDashboardDraft}
                           draftId={draftId}
                           activeProjectRef={activeProjectRef}
                           activeProjectTitle={activeProject?.title ?? null}

@@ -2578,3 +2578,212 @@ code {
   outline: 2px solid var(--ring);
   outline-offset: -2px;
 }
+
+.orbit-dashboard-aurora {
+  container: orbit-aurora / inline-size;
+  pointer-events: none;
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 0;
+  height: 560px;
+  overflow: hidden;
+  user-select: none;
+  opacity: 0.12;
+  mask-image: linear-gradient(to bottom, black 0%, black 60%, transparent 100%);
+
+  @variant dark {
+    opacity: 1;
+  }
+}
+
+.orbit-dashboard-aurora-sky {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: max(1200px, 100%);
+  max-width: none;
+  height: 532px;
+}
+
+.orbit-dashboard-aurora-stars {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.orbit-dashboard-aurora-seam {
+  position: absolute;
+  top: 0;
+  left: calc(-1 * var(--sidebar-width, 16rem));
+  width: calc(100% + var(--sidebar-width, 16rem));
+  height: 80px;
+  overflow: hidden;
+  --seam-bottom: linear-gradient(to bottom, black 0%, black 55%, transparent 92%);
+  --seam-right: linear-gradient(
+    to right,
+    black calc(var(--sidebar-width, 16rem) + 90px),
+    transparent calc(var(--sidebar-width, 16rem) + 460px)
+  );
+  mask-image: var(--seam-bottom), var(--seam-right);
+  mask-composite: intersect;
+
+  & img {
+    width: 1000px;
+    max-width: none;
+    height: 80px;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      transparent 28%,
+      color-mix(in srgb, var(--background) 10%, transparent) 40%,
+      color-mix(in srgb, var(--background) 30%, transparent) 52%,
+      color-mix(in srgb, var(--background) 58%, transparent) 64%,
+      color-mix(in srgb, var(--background) 82%, transparent) 75%,
+      color-mix(in srgb, var(--background) 96%, transparent) 85%,
+      var(--background) 93%
+    );
+  }
+}
+
+[data-orbit-dashboard-sidebar] [data-slot="sidebar-container"] {
+  border-width: 0;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: 1px;
+    pointer-events: none;
+    background: color-mix(in srgb, var(--foreground) 9%, transparent);
+    mask-image: linear-gradient(to bottom, transparent 44px, black 104px);
+  }
+}
+
+@container orbit-aurora (max-width: 639.98px) {
+  .orbit-dashboard-aurora-sky {
+    width: 880px;
+  }
+}
+
+@container orbit-aurora (max-width: 459.98px) {
+  .orbit-dashboard-aurora-sky {
+    left: -400px;
+    width: 1200px;
+    height: 430px;
+  }
+  .orbit-dashboard-aurora-seam {
+    display: none;
+  }
+}
+
+[data-orbit-dashboard-column] {
+  container-type: inline-size;
+}
+
+[data-orbit-dashboard-canvas] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(140px, 1fr) auto minmax(140px, 1fr);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: clamp(24px, 3.4cqi, 36px) clamp(24px, 4.4cqi, 48px);
+  scrollbar-width: thin;
+}
+
+.orbit-dashboard-burn {
+  grid-area: 1 / 1;
+  align-self: start;
+  justify-self: start;
+}
+
+.orbit-dashboard-composer,
+.orbit-dashboard-empty {
+  grid-area: 2 / 1;
+  align-self: center;
+  min-width: 0;
+}
+
+[data-orbit-dashboard-canvas] > .chat-banner-lane {
+  grid-area: 2 / 1;
+  position: relative;
+  inset: auto;
+  align-self: start;
+  transform: translateY(-100%);
+}
+
+.orbit-dashboard-footer {
+  grid-area: 3 / 1;
+  align-self: end;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  min-width: 0;
+}
+
+.orbit-dashboard-today {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+
+.orbit-dashboard-today strong {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.orbit-dashboard-limits {
+  position: relative;
+  width: min(220px, 100%);
+  min-height: 32px;
+  padding-left: 28px;
+}
+
+.orbit-dashboard-limits-picker {
+  position: absolute;
+  left: -6px;
+  top: 0;
+}
+
+@media (max-width: 600px) {
+  [data-orbit-dashboard-canvas] {
+    grid-template-rows: auto auto auto;
+    align-content: start;
+    gap: 40px;
+    padding: 64px 16px 32px;
+  }
+  .orbit-dashboard-composer,
+  .orbit-dashboard-empty {
+    grid-row: 1;
+  }
+  .orbit-dashboard-burn {
+    grid-row: 2;
+  }
+  .orbit-dashboard-footer {
+    grid-row: 3;
+    gap: 28px;
+  }
+  .orbit-dashboard-limits {
+    width: 100%;
+    padding-left: 0;
+    padding-right: 32px;
+  }
+  .orbit-dashboard-limits-picker {
+    left: auto;
+    right: -6px;
+  }
+  [data-orbit-dashboard-canvas] > .chat-banner-lane {
+    grid-row: 1;
+  }
+}

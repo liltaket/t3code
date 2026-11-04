@@ -65,14 +65,12 @@ interface PickerItem {
 
 interface DraftHeroHeadlineProps {
   readonly draftId: DraftId | null;
-  readonly compact?: boolean;
   readonly activeProjectRef: ScopedProjectRef | null;
   readonly activeProjectTitle: string | null;
 }
 
 export function DraftHeroHeadline({
   draftId,
-  compact = false,
   activeProjectRef,
   activeProjectTitle,
 }: DraftHeroHeadlineProps) {
@@ -414,18 +412,9 @@ export function DraftHeroHeadline({
   }
 
   return (
-    <div
-      className={
-        compact
-          ? "flex w-full flex-col items-start"
-          : "mx-auto flex w-full max-w-5xl flex-col items-center"
-      }
-    >
+    <div className="mx-auto flex w-full max-w-5xl flex-col items-center">
       {hasResolvedProject && !isScratchDraft ? (
-        <DraftHeroProjectHeading
-          compact={compact}
-          projectName={activeProjectTitle ?? "Choose a project"}
-        >
+        <DraftHeroProjectHeading projectName={activeProjectTitle ?? "Choose a project"}>
           {projectSelector}
         </DraftHeroProjectHeading>
       ) : (
@@ -440,13 +429,7 @@ export function DraftHeroHeadline({
         </h1>
       )}
       {scratchWorkspaceRoot === null ? null : (
-        <p
-          className={
-            compact
-              ? "mt-1 flex w-full items-center text-xs"
-              : "mt-2 flex h-6 w-full items-center justify-center text-sm"
-          }
-        >
+        <p className="mt-2 flex h-6 w-full items-center justify-center text-sm">
           {isScratchDraft ? projectSelector : orStartWithoutProject}
         </p>
       )}

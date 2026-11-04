@@ -448,6 +448,7 @@ export function AppSidebarLayout({ children }: { children: ReactNode }) {
       <SidebarProvider
         className="h-dvh! min-h-0!"
         data-panel-animations={routePanelAnimationsActive ? "true" : "false"}
+        data-orbit-dashboard-sidebar={pathname === "/dashboard" || undefined}
         defaultOpen
         style={sidebarProviderStyle}
       >

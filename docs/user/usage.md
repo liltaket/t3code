@@ -9,19 +9,21 @@ On mobile, choose **Usage** in the workspace navigation.
 ## Dashboard
 
 On web and desktop, click the logo at the top of the sidebar or choose **Open dashboard**
-from the command palette. The dashboard shows token usage, a daily calendar, compact thread
-counts and selected subscription limits. Burn rate and output tokens per second are averages
-of reported usage over the last 60 minutes, including idle time; they are not model decoding
-speed. Reports update every five minutes while the dashboard is open. Use the environment
-filter to scope usage, counts and limits; it does not change the destination of a prompt.
+from the command palette. The dashboard keeps the usual new-thread composer in the centre,
+with burn rate, threads started today, today's token total and selected subscription limits.
+Thread counts reflect the workspace history loaded by your connected environments.
 
-Write a new prompt with the usual project, model and permission controls below the statistics.
-Unsent input stays in its draft when you leave and return. Sending opens the conversation.
+Burn rate averages reported tokens over the last 60 minutes, including idle time. It is not
+model decoding speed. Reports update every five minutes while the dashboard is open.
+Open **hourly average** for coverage information and a link to the complete Usage view.
 
-Use **Choose limits** to pick individual windows, such as Codex weekly or Claude session.
-Your selection is saved on this device. Initially, the dashboard shows one window from
-up to three providers; **Use suggested limits** restores that selection. You can hide every limit.
-Open **All usage** for the complete usage view or **Connections** to manage environments.
+Write a prompt with the usual project, model and permission controls. Unsent input stays in
+its draft when you leave and return. Sending opens the conversation.
+
+Use the limit selector to choose up to three individual windows, such as Codex weekly or
+Claude session. Your selection is saved on this device. Initially, the dashboard shows one
+window from up to two providers; **Use suggested limits** restores that selection. You can
+hide every limit. Manage environments in **Settings → Connections**.
 
 Enable **Open dashboard automatically** in **Settings → Labs** to open it from a
 conversation when every open thread is working or snoozed. The preference is off

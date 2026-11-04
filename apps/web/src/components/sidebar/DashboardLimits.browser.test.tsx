@@ -10,7 +10,7 @@ const pools: ReadonlyArray<LimitPool> = [
   {
     driver: ProviderDriverKind.make("codex"),
     accounts: [],
-    windows: ["Session", "Weekly"].map((label) => ({
+    windows: ["Session", "Weekly", "Extra A", "Extra B"].map((label) => ({
       id: label.toLowerCase(),
       kind: label === "Weekly" ? "weekly" : "session",
       label,
@@ -54,11 +54,16 @@ it("keeps chosen windows across remounts, supports hiding all and restores sugge
     .element(restored.getByRole("meter", { name: "Codex · Weekly remaining" }))
     .toBeVisible();
   await userEvent.click(restored.getByRole("button", { name: "Choose limits" }));
+  await userEvent.click(page.getByRole("menuitemcheckbox", { name: "Codex · Extra A" }));
+  await userEvent.click(page.getByRole("menuitemcheckbox", { name: "Codex · Extra B" }));
+  await expect
+    .element(page.getByRole("menuitemcheckbox", { name: "Codex · Session" }))
+    .toBeDisabled();
+  await userEvent.click(page.getByRole("menuitemcheckbox", { name: "Codex · Extra A" }));
+  await userEvent.click(page.getByRole("menuitemcheckbox", { name: "Codex · Extra B" }));
   await userEvent.click(page.getByRole("menuitemcheckbox", { name: "Codex · Weekly" }));
   await userEvent.keyboard("{Escape}");
-  await expect
-    .element(restored.getByText("No limits selected. Choose the ones you want to keep here."))
-    .toBeVisible();
+  await expect.element(restored.getByText("No limits selected")).toBeVisible();
   await userEvent.click(restored.getByRole("button", { name: "Choose limits" }));
   await userEvent.click(page.getByRole("menuitem", { name: "Use suggested limits" }));
   await expect
